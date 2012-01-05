@@ -1,0 +1,232 @@
+% vim: cc=80 ft=erlang ts=2 sw=2 et
+%
+% Copyright 1992-2011 Matthias Horn. All rights reserved.
+% 
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
+% 
+% 1. Redistributions of source code must retain the above copyright notice,
+%    this list of conditions and the following disclaimer.
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+%    this list of conditions and the following disclaimer in the documentation
+%    and/or other materials provided with the distribution.
+% 
+% THIS SOFTWARE IS PROVIDED BY THE FREEBSD PROJECT "AS IS" AND ANY EXPRESS OR
+% IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+% MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+% EVENT SHALL THE FREEBSD PROJECT OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+% INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+% (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+% LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+% ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+% (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+% SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+% 
+% The views and conclusions contained in the software and documentation are
+% those of the authors and should not be interpreted as representing official
+% policies, either expressed or implied, of Matthias Horn.
+<%@ code(Callback) %>
+%% WARNING: GENERATED CODE, MODIFICATION ILLADVISED
+
+%% Master template is "rebar_webmachine_rest.erltl"
+%% Input is <%asci(Callback)%>
+
+-module(<%asci(Callback)%>.'_').
+
+-export([init/1]).
+<% code(Callback,fun export/3) %>
+-import(<%asci(Callback)%>).
+-import(wrq).
+
+-behaviour(webmachine_resource).
+-include_lib("webmachine/include/webmachine.hrl").
+
+init(_) -> {ok, undefined}.
+
+state(ReqData) ->
+  case wrq:disp_path(ReqData) of
+    "new" -> new;
+    Path -> <%asci(Callback)%>:get(iolist_to_binary(Path))
+  end.
+
+<% code(Callback,fun request/3) %>
+
+%END
+
+<%@ export(Name,_New,_Return) %>
+-export([<%asci(Name)%>/2]).
+
+<%@ request(Name,New,Return) %>
+<%asci(Name)%>(ReqData,undefined) ->
+  <%asci(Name)%>(ReqData,state(ReqData));
+<%asci(Name)%>(ReqData,new) ->
+  <%New%>;
+<%asci(Name)%>(ReqData,State) ->
+  <%Return%>.
+
+
+<%@ code(Callback,RQ_) %><% begin
+  RQ = fun(Name,New,Return) -> RQ_(Name,[""%>{<%New%>,ReqData,new}<%""],[""%>{<%Return%>,ReqData,State}<%""]) end,
+[""%>
+
+<%iff(erlang:function_exported(Callback,status,1),[""%>
+service_available(ReqData,State) -> {<%asci(Callback)%>:status(available),ReqData,State}
+<%""])%>
+
+<%iff(erlang:function_exported(Callback,last_modified,1),[""%>
+<%RQ(last_modified,[""%>
+    undefined
+<%""],[""%>
+    <%asci(Callback)%>:last_modified(State)
+<%""])%>
+<%""])%>
+
+<%RQ(generate_etag,[""%>
+    undefined
+<%""],[""%>
+    erlang:phash(State)
+<%""])%>
+
+<%RQ(content_types_provided,[""%>
+    []
+<%""],[""%>
+  <%[[""%>
+  <%iff(erlang:function_exported(Callback,list_to_atom("to_"++atom_to_list(Tag)),1),[""%>
+    [{<% string(Mime)%>, to_<%asci(Tag)%>}] ++
+  <%""])%>
+  <%""] || {Mime,Tag} <- formats(Callback) ] %> 
+    []
+<%""])%>
+
+<%iff(erlang:function_exported(Callback,put,1),[""%>
+<%RQ(content_types_accepted,[""%>
+  <%[[""%>
+  <%iff(erlang:function_exported(Callback,list_to_atom("from_"++atom_to_list(Tag)),1),[""%>
+    [{<% string(Mime)%>, from_<%asci(Tag)%>}] ++
+  <%""])%>
+  <%""] || {Mime,Tag} <- formats(Callback) ] %>
+    []
+<%""],[""%>
+  <%[[""%>
+  <%iff(erlang:function_exported(Callback,list_to_atom("from_"++atom_to_list(Tag)),2),[""%>
+    [{<% string(Mime)%>, from_<%asci(Tag)%>}] ++
+  <%""])%>
+  <%""] || {Mime,Tag} <- formats(Callback) ] %>
+    []
+<%""])%>
+<%""])%>
+
+<%iff(erlang:function_exported(Callback,delete,1),[""%>
+<%RQ_(delete_resource,[""%>
+    {{error,not_supported},ReqData,new}
+<%""],[""%>
+    case <%asci(Callback)%>:delete(State) of
+      deleted ->
+        {true,ReqData,deleted};
+      deleting ->
+        {true,ReqData,deleting};
+      not_deleted -> 
+        {false,ReqData,State};
+      Error ->
+        {{error,Error},ReqData,State}
+    end
+<%""])%>
+<%""])%>
+
+<%iff(erlang:function_exported(Callback,delete,1),[""%>
+<%RQ(delete_completed,[""%>
+    {error,not_supported}
+<%""],[""%>
+    case State of
+      deleted -> true;
+      deleting -> false;
+      _ -> {error,bad_state}
+    end
+<%""])%>
+<%""])%>
+
+<%[[""%>
+<%iff(erlang:function_exported(Callback,list_to_atom("to_"++atom_to_list(Tag)),1),[""%>
+<%RQ(list_to_atom("to_"++atom_to_list(Tag)),[""%>
+    {error,not_supported}
+<%""],[""%>
+  <%asci(Callback)%>:to_<%asci(Tag)%>(State)
+<%""])%>
+<%""])%>
+<%iff(erlang:function_exported(Callback,list_to_atom("from_"++atom_to_list(Tag)),1) 
+                  or erlang:function_exported(Callback,list_to_atom("from_"++atom_to_list(Tag)),2),[""%>
+<%RQ_(list_to_atom("from_"++atom_to_list(Tag)),[""%>
+  <%iff(erlang:function_exported(Callback,list_to_atom("from_"++atom_to_list(Tag)),1),[""%>
+    State1 = <%asci(Callback)%>:from_<%asci(Tag)%>(wrq:req_body(ReqData)),
+    {ok,ReqData,State1}
+  <%""],[""%>
+    {{error,not_supported},ReqData,new}
+  <%""])%>
+<%""],[""%>
+  <%iff(erlang:function_exported(Callback,list_to_atom("from_"++atom_to_list(Tag)),2),[""%>
+    State1 = <%asci(Callback)%>:from_<%asci(Tag)%>(wrq:req_body(ReqData,State)),
+    {ok,ReqData,State1}
+  <%""],[""%>
+    {{error,not_supported},ReqData,State}
+  <%""])%>
+<%""])%>
+<%""])%>
+<%""] || {_Mime,Tag} <- formats(Callback) ]%>
+
+<%RQ(post_is_create,[""%>
+    true
+<%""],[""%>
+    true
+<%""])%>
+<%RQ(create_path,[""%>
+    wrq:disp_path(ReqData)
+<%""],[""%>
+    wrq:disp_path(ReqData)
+<%""])%>
+<%RQ(resource_exists,[""%>
+    false
+<%""],[""%>
+    State=/=undefined
+<%""])%>
+<%RQ(allow_missing_post,[""%>
+    true
+<%""],[""%>
+    false
+<%""])%>
+
+<%RQ(allowed_methods,[""%>
+  <%iff(erlang:function_exported(Callback,new,0)
+                   and erlang:function_exported(Callback,put,1),[""%>
+    ['POST','PUT']
+  <%""],[""%>
+    []
+  <%""])%>
+<%""],[""%>
+    ['HEAD','GET']
+  <%iff(erlang:function_exported(Callback,put,1),[""%>
+    ++['POST','PUT']
+  <%""])%>
+  <%iff(erlang:function_exported(Callback,delete,1),[""%>
+    ++['DELETE']
+  <%""])%>
+<%""])%>
+
+
+<%""] end%>
+
+<%!
+%><%@ formats(Callback) %><%
+[ {"text/xml",xml}
+, {"application/json",json}
+  , {"application/pdf",pdf}
+  , {"text/html",html}
+  , {"application/x-erlang-binary",erlang_binary}
+  , {"application/x-erlang",erlang_string}
+  , {"application/x-protobuf",protocol_buffers}] ++
+  case erlang:function_exported(Callback,formats,0) of true -> Callback:formats(); _ -> [] end
+%><%!
+%><%@ iff(Cond,Then,Else) %><% case Cond of true -> Then; _ -> Else end %><%!
+%><%@ iff(Cond,Then) %><%iff(Cond,Then,"") %><%!
+%><%@ asci(T) %><% io_lib:format("~p",[T]) %><%!
+%><%@ string(T) %><% io_lib:format("~p",[binary_to_list(iolist_to_binary(asci(T)))]) %><%!
+%><%@ eof() %>
