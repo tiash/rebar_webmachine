@@ -226,6 +226,6 @@ service_available(ReqData,State) -> {<%asci(Data)%>:status(available),ReqData,St
 %><%!
 %><%@ iff(Cond,Then,Else) %><% case Cond of true -> Then; _ -> Else end %><%!
 %><%@ iff(Cond,Then) %><%iff(Cond,Then,"") %><%!
-%><%@ asci(T) %><% io_lib:format("~p",[T]) %><%!
-%><%@ string(T) %><% io_lib:format("~p",[binary_to_list(iolist_to_binary(asci(T)))]) %><%!
+%><%@ asci(T) %><% .io_lib:format("~p",[T]) %><%!
+%><%@ string(T) %><% .io_lib:format("~p",[binary_to_list(iolist_to_binary(asci(T)))]) %><%!
 %><%@ eof() %>
