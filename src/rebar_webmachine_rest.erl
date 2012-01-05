@@ -7,28 +7,8 @@
 
 -define(CODEGEN,(list_to_atom(?MODULE_STRING++".erltl"))).
 
-on_load() ->
-  case code:ensure_loaded(?CODEGEN) of
-    {module,_} ->
-      %io:format("~p~n",[?CODEGEN:module_info()]),
-      ok;
-    _ ->
-      File = filename:rootname(?FILE)++".erltl",
-      % io:format("~s~n",[File]),
-      case erltl2:compile(File,?CODEGEN,[binary,return,load]) of
-        {ok,_,Code,_} ->
-          _Res = code:load_binary(?CODEGEN,File,Code),
-          % io:format("~p~n",[_Res]),
-          on_load();
-        {error,enoent} -> ok
-      end
-  end,
-  ok.
-
-
 compile(Config, _AppFile) ->
     % io:format("~s:~b ~~ ~s:compile(~p,~p).~n",[?FILE,?LINE,?MODULE,Config,_AppFile]),
-    on_load(),
     RestOpts = rest_opts(Config),
     ?RES(
     rebar_base_compiler:run(Config, [],
