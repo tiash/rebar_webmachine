@@ -91,7 +91,7 @@ service_available(ReqData,State) -> {<%asci(Data)%>:status(available),ReqData,St
 <%""],[""%>
   <%[[""%>
   <%iff(.rebar_webmachine_rest:exports(Data,list_to_atom("to_"++atom_to_list(Tag)),1),[""%>
-    [{<% string(Mime)%>, to_<%asci(Tag)%>}] ++
+    [{<% asci(Mime)%>, to_<%asci(Tag)%>}] ++
   <%""])%>
   <%""] || {Mime,Tag} <- .rebar_webmachine_rest:formats(Data) ] %> 
     []
