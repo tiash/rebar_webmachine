@@ -2,11 +2,13 @@
 
 % -on_load(on_load/0).
 -export([compile/2]).
+-export([exports/3]).
+-export([formats/1]).
 
 -include("rebar.hrl").
 
 compile(Config, _AppFile) ->
-    % io:format("~s:~b ~~ ~s:compile(~p,~p).~n",[?FILE,?LINE,?MODULE,Config,_AppFile]),
+    ?DEBUG("~s:~b ~~ ~s:compile(~p,~p).~n",[?FILE,?LINE,?MODULE,Config,_AppFile]),
     RestOpts = rest_opts(Config),
     ?RES(
     rebar_base_compiler:run(Config, [],
@@ -36,66 +38,66 @@ compile_tl(Source, Target, Config) ->
             end.
 
 do_compile(Module, Target, _Config) when is_atom(Module) ->
-  % io:format("~p: ~p -> ~s~n",[?LINE,Module,Target]),
+  ?DEBUG("~p: ~p -> ~s~n",[?LINE,Module,Target]),
   Code = (catch iolist_to_binary((rebar_webmachine_rest.erltl:render(Module)))),
-  % io:format("~p: ~p -> ~s~n%%%%%%%%%%%%%%%%%%~s~n%%%%%%%%%%%%%%%%%%~n",[?LINE,Module,Target,Code]),
+  ?DEBUG("~p: ~p -> ~s~n%%%%%%%%%%%%%%%%%%~s~n%%%%%%%%%%%%%%%%%%~n",[?LINE,Module,Target,Code]),
   case catch file:read_file(Target) of
     {ok,Code} ->
-      % io:format("~p: ~p -> ~s~n",[?LINE,Module,Target]),
+      ?DEBUG("~p: ~p -> ~s~n",[?LINE,Module,Target]),
       ok;
     _ ->
       filelib:ensure_dir(Target),
       Res = (catch file:write_file(Target,Code)),
-      % io:format("~p: ~p -> ~s~n    ~p~n",[?LINE,Module,Target,Res]),
+      ?DEBUG("~p: ~p -> ~s~n    ~p~n",[?LINE,Module,Target,Res]),
       Res
   end;
 do_compile(Source, Target, Config) ->
-  % io:format("~p: ~s -> ~s~n",[?LINE,Source,Target]),
+  ?DEBUG("~p: ~s -> ~s~n",[?LINE,Source,Target]),
   case file:read_file(Source) of
     {ok,Beam} ->
       case catch beam_lib:chunks(Beam,[attributes]) of
         {ok,{Module,_}} ->
-          % io:format("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,Module]),
+          ?DEBUG("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,Module]),
           case catch code:ensure_loaded(Module) of
             {module,_} ->
-              % io:format("~p: ~s -> ~s~n",[?LINE,Source,Target]),
+              ?DEBUG("~p: ~s -> ~s~n",[?LINE,Source,Target]),
               do_compile(Module,Target,Config);
             {error,_E} ->
-              % io:format("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,_E]),
+              ?DEBUG("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,_E]),
               case catch code:load_binary(Module,Source,Beam) of
                 {module,Module} ->
-                  % io:format("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,Module]),
+                  ?DEBUG("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,Module]),
                   Res = do_compile(Module,Target,Config),
-                  % io:format("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,Res]),
+                  ?DEBUG("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,Res]),
                   % code:delete(Module),
                   % code:purge(Module),
                   Res;
                 Err={error,_} ->
-          % io:format("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,Err]),
+          ?DEBUG("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,Err]),
           Err;
         Err=_ ->
-          % io:format("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,Err]),
+          ?DEBUG("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,Err]),
           Err
       end;
 
         Err=_ ->
-          % io:format("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,Err]),
+          ?DEBUG("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,Err]),
           Err
           end;
         Err={error,_,_} ->
-          % io:format("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,Err]),
+          ?DEBUG("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,Err]),
           Err;
         Err=_ ->
-          % io:format("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,Err]),
+          ?DEBUG("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,Err]),
           Err
       end;
     Err=_ ->
-      % io:format("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,Err]),
+      ?DEBUG("~p: ~s -> ~s~n    ~p~n",[?LINE,Source,Target,Err]),
       Err
   end.
 
 needs_compile(Source, Target, _Config) ->
-    % io:format("~s -> ~s~n",[Source,Target]),
+    ?DEBUG("~s -> ~s~n",[Source,Target]),
     LM = filelib:last_modified(Target),
     LM < filelib:last_modified(Source) andalso
     (case beam_lib:chunks(Source,[attributes]) of
@@ -104,6 +106,17 @@ needs_compile(Source, Target, _Config) ->
         _ -> false
     end).
 
+exports(Module,Function,Arity) ->
+  [ ok || X <- Module:module_info(exports), X=:={Function,Arity}] =/= [].
 
 
+formats(Data) ->
+  [ {"text/xml",xml}
+  , {"application/json",json}
+  , {"application/pdf",pdf}
+  , {"text/html",html}
+  , {"application/x-erlang-binary",erlang_binary}
+  , {"application/x-erlang",erlang_string}
+  , {"application/x-protobuf",protocol_buffers}] ++
+  case exports(Data,formats,0) of true -> Data:formats(); _ -> [] end.
 

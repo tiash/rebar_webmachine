@@ -68,11 +68,11 @@ state(ReqData) ->
   RQ = fun(Name,New,Return) -> RQ_(Name,[""%>{<%New%>,ReqData,new}<%""],[""%>{<%Return%>,ReqData,State}<%""]) end,
 [""%>
 
-<%iff(erlang:function_exported(Data,status,1),[""%>
+<%iff(.rebar_webmachine_rest:exports(Data,status,1),[""%>
 service_available(ReqData,State) -> {<%asci(Data)%>:status(available),ReqData,State}
 <%""])%>
 
-<%iff(erlang:function_exported(Data,last_modified,1),[""%>
+<%iff(.rebar_webmachine_rest:exports(Data,last_modified,1),[""%>
 <%RQ(last_modified,[""%>
     undefined
 <%""],[""%>
@@ -83,39 +83,39 @@ service_available(ReqData,State) -> {<%asci(Data)%>:status(available),ReqData,St
 <%RQ(generate_etag,[""%>
     undefined
 <%""],[""%>
-    erlang:phash(State)
+    integer_to_list(erlang:phash2(State))
 <%""])%>
 
 <%RQ(content_types_provided,[""%>
     []
 <%""],[""%>
   <%[[""%>
-  <%iff(erlang:function_exported(Data,list_to_atom("to_"++atom_to_list(Tag)),1),[""%>
+  <%iff(.rebar_webmachine_rest:exports(Data,list_to_atom("to_"++atom_to_list(Tag)),1),[""%>
     [{<% string(Mime)%>, to_<%asci(Tag)%>}] ++
   <%""])%>
-  <%""] || {Mime,Tag} <- formats(Data) ] %> 
+  <%""] || {Mime,Tag} <- .rebar_webmachine_rest:formats(Data) ] %> 
     []
 <%""])%>
 
-<%iff(erlang:function_exported(Data,put,1),[""%>
+<%iff(.rebar_webmachine_rest:exports(Data,put,1),[""%>
 <%RQ(content_types_accepted,[""%>
   <%[[""%>
-  <%iff(erlang:function_exported(Data,list_to_atom("from_"++atom_to_list(Tag)),1),[""%>
+  <%iff(.rebar_webmachine_rest:exports(Data,list_to_atom("from_"++atom_to_list(Tag)),1),[""%>
     [{<% string(Mime)%>, from_<%asci(Tag)%>}] ++
   <%""])%>
-  <%""] || {Mime,Tag} <- formats(Data) ] %>
+  <%""] || {Mime,Tag} <- .rebar_webmachine_rest:formats(Data) ] %>
     []
 <%""],[""%>
   <%[[""%>
-  <%iff(erlang:function_exported(Data,list_to_atom("from_"++atom_to_list(Tag)),2),[""%>
+  <%iff(.rebar_webmachine_rest:exports(Data,list_to_atom("from_"++atom_to_list(Tag)),2),[""%>
     [{<% string(Mime)%>, from_<%asci(Tag)%>}] ++
   <%""])%>
-  <%""] || {Mime,Tag} <- formats(Data) ] %>
+  <%""] || {Mime,Tag} <- .rebar_webmachine_rest:formats(Data) ] %>
     []
 <%""])%>
 <%""])%>
 
-<%iff(erlang:function_exported(Data,delete,1),[""%>
+<%iff(.rebar_webmachine_rest:exports(Data,delete,1),[""%>
 <%RQ_(delete_resource,[""%>
     {{error,not_supported},ReqData,new}
 <%""],[""%>
@@ -132,7 +132,7 @@ service_available(ReqData,State) -> {<%asci(Data)%>:status(available),ReqData,St
 <%""])%>
 <%""])%>
 
-<%iff(erlang:function_exported(Data,delete,1),[""%>
+<%iff(.rebar_webmachine_rest:exports(Data,delete,1),[""%>
 <%RQ(delete_completed,[""%>
     {error,not_supported}
 <%""],[""%>
@@ -145,24 +145,24 @@ service_available(ReqData,State) -> {<%asci(Data)%>:status(available),ReqData,St
 <%""])%>
 
 <%[[""%>
-<%iff(erlang:function_exported(Data,list_to_atom("to_"++atom_to_list(Tag)),1),[""%>
+<%iff(.rebar_webmachine_rest:exports(Data,list_to_atom("to_"++atom_to_list(Tag)),1),[""%>
 <%RQ(list_to_atom("to_"++atom_to_list(Tag)),[""%>
     {error,not_supported}
 <%""],[""%>
   <%asci(Data)%>:to_<%asci(Tag)%>(State)
 <%""])%>
 <%""])%>
-<%iff(erlang:function_exported(Data,list_to_atom("from_"++atom_to_list(Tag)),1) 
-                  or erlang:function_exported(Data,list_to_atom("from_"++atom_to_list(Tag)),2),[""%>
+<%iff(.rebar_webmachine_rest:exports(Data,list_to_atom("from_"++atom_to_list(Tag)),1) 
+                  or .rebar_webmachine_rest:exports(Data,list_to_atom("from_"++atom_to_list(Tag)),2),[""%>
 <%RQ_(list_to_atom("from_"++atom_to_list(Tag)),[""%>
-  <%iff(erlang:function_exported(Data,list_to_atom("from_"++atom_to_list(Tag)),1),[""%>
+  <%iff(.rebar_webmachine_rest:exports(Data,list_to_atom("from_"++atom_to_list(Tag)),1),[""%>
     State1 = <%asci(Data)%>:from_<%asci(Tag)%>(wrq:req_body(ReqData)),
     {ok,ReqData,State1}
   <%""],[""%>
     {{error,not_supported},ReqData,new}
   <%""])%>
 <%""],[""%>
-  <%iff(erlang:function_exported(Data,list_to_atom("from_"++atom_to_list(Tag)),2),[""%>
+  <%iff(.rebar_webmachine_rest:exports(Data,list_to_atom("from_"++atom_to_list(Tag)),2),[""%>
     State1 = <%asci(Data)%>:from_<%asci(Tag)%>(wrq:req_body(ReqData,State)),
     {ok,ReqData,State1}
   <%""],[""%>
@@ -170,7 +170,7 @@ service_available(ReqData,State) -> {<%asci(Data)%>:status(available),ReqData,St
   <%""])%>
 <%""])%>
 <%""])%>
-<%""] || {_Mime,Tag} <- formats(Data) ]%>
+<%""] || {_Mime,Tag} <- .rebar_webmachine_rest:formats(Data) ]%>
 
 <%RQ(post_is_create,[""%>
     true
@@ -194,18 +194,18 @@ service_available(ReqData,State) -> {<%asci(Data)%>:status(available),ReqData,St
 <%""])%>
 
 <%RQ(allowed_methods,[""%>
-  <%iff(erlang:function_exported(Data,new,0)
-                   and erlang:function_exported(Data,put,1),[""%>
+  <%iff(.rebar_webmachine_rest:exports(Data,new,0)
+                   and .rebar_webmachine_rest:exports(Data,put,1),[""%>
     ['POST','PUT']
   <%""],[""%>
     []
   <%""])%>
 <%""],[""%>
     ['HEAD','GET']
-  <%iff(erlang:function_exported(Data,put,1),[""%>
+  <%iff(.rebar_webmachine_rest:exports(Data,put,1),[""%>
     ++['POST','PUT']
   <%""])%>
-  <%iff(erlang:function_exported(Data,delete,1),[""%>
+  <%iff(.rebar_webmachine_rest:exports(Data,delete,1),[""%>
     ++['DELETE']
   <%""])%>
 <%""])%>
@@ -214,16 +214,6 @@ service_available(ReqData,State) -> {<%asci(Data)%>:status(available),ReqData,St
 <%""] end%>
 
 <%!
-%><%@ formats(Data) %><%
-[ {"text/xml",xml}
-, {"application/json",json}
-  , {"application/pdf",pdf}
-  , {"text/html",html}
-  , {"application/x-erlang-binary",erlang_binary}
-  , {"application/x-erlang",erlang_string}
-  , {"application/x-protobuf",protocol_buffers}] ++
-  case erlang:function_exported(Data,formats,0) of true -> Data:formats(); _ -> [] end
-%><%!
 %><%@ iff(Cond,Then,Else) %><% case Cond of true -> Then; _ -> Else end %><%!
 %><%@ iff(Cond,Then) %><%iff(Cond,Then,"") %><%!
 %><%@ asci(T) %><% .io_lib:format("~p",[T]) %><%!
