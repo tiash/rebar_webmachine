@@ -25,17 +25,16 @@
 % The views and conclusions contained in the software and documentation are
 % those of the authors and should not be interpreted as representing official
 % policies, either expressed or implied, of Matthias Horn.
-<%@ code(Callback) %>
 %% WARNING: GENERATED CODE, MODIFICATION ILLADVISED
 
 %% Master template is "rebar_webmachine_rest.erltl"
-%% Input is <%asci(Callback)%>
+%% Input is <%asci(Data)%>
 
--module(<%asci(Callback)%>.'_').
+-module(<%asci(Data)%>.'_').
 
 -export([init/1]).
-<% code(Callback,fun export/3) %>
--import(<%asci(Callback)%>).
+<% code(Data,fun export/3) %>
+-import(<%asci(Data)%>).
 -import(wrq).
 
 -behaviour(webmachine_resource).
@@ -46,10 +45,10 @@ init(_) -> {ok, undefined}.
 state(ReqData) ->
   case wrq:disp_path(ReqData) of
     "new" -> new;
-    Path -> <%asci(Callback)%>:get(iolist_to_binary(Path))
+    Path -> <%asci(Data)%>:get(iolist_to_binary(Path))
   end.
 
-<% code(Callback,fun request/3) %>
+<% code(Data,fun request/3) %>
 
 %END
 
@@ -65,19 +64,19 @@ state(ReqData) ->
   <%Return%>.
 
 
-<%@ code(Callback,RQ_) %><% begin
+<%@ code(Data,RQ_) %><% begin
   RQ = fun(Name,New,Return) -> RQ_(Name,[""%>{<%New%>,ReqData,new}<%""],[""%>{<%Return%>,ReqData,State}<%""]) end,
 [""%>
 
-<%iff(erlang:function_exported(Callback,status,1),[""%>
-service_available(ReqData,State) -> {<%asci(Callback)%>:status(available),ReqData,State}
+<%iff(erlang:function_exported(Data,status,1),[""%>
+service_available(ReqData,State) -> {<%asci(Data)%>:status(available),ReqData,State}
 <%""])%>
 
-<%iff(erlang:function_exported(Callback,last_modified,1),[""%>
+<%iff(erlang:function_exported(Data,last_modified,1),[""%>
 <%RQ(last_modified,[""%>
     undefined
 <%""],[""%>
-    <%asci(Callback)%>:last_modified(State)
+    <%asci(Data)%>:last_modified(State)
 <%""])%>
 <%""])%>
 
@@ -91,36 +90,36 @@ service_available(ReqData,State) -> {<%asci(Callback)%>:status(available),ReqDat
     []
 <%""],[""%>
   <%[[""%>
-  <%iff(erlang:function_exported(Callback,list_to_atom("to_"++atom_to_list(Tag)),1),[""%>
+  <%iff(erlang:function_exported(Data,list_to_atom("to_"++atom_to_list(Tag)),1),[""%>
     [{<% string(Mime)%>, to_<%asci(Tag)%>}] ++
   <%""])%>
-  <%""] || {Mime,Tag} <- formats(Callback) ] %> 
+  <%""] || {Mime,Tag} <- formats(Data) ] %> 
     []
 <%""])%>
 
-<%iff(erlang:function_exported(Callback,put,1),[""%>
+<%iff(erlang:function_exported(Data,put,1),[""%>
 <%RQ(content_types_accepted,[""%>
   <%[[""%>
-  <%iff(erlang:function_exported(Callback,list_to_atom("from_"++atom_to_list(Tag)),1),[""%>
+  <%iff(erlang:function_exported(Data,list_to_atom("from_"++atom_to_list(Tag)),1),[""%>
     [{<% string(Mime)%>, from_<%asci(Tag)%>}] ++
   <%""])%>
-  <%""] || {Mime,Tag} <- formats(Callback) ] %>
+  <%""] || {Mime,Tag} <- formats(Data) ] %>
     []
 <%""],[""%>
   <%[[""%>
-  <%iff(erlang:function_exported(Callback,list_to_atom("from_"++atom_to_list(Tag)),2),[""%>
+  <%iff(erlang:function_exported(Data,list_to_atom("from_"++atom_to_list(Tag)),2),[""%>
     [{<% string(Mime)%>, from_<%asci(Tag)%>}] ++
   <%""])%>
-  <%""] || {Mime,Tag} <- formats(Callback) ] %>
+  <%""] || {Mime,Tag} <- formats(Data) ] %>
     []
 <%""])%>
 <%""])%>
 
-<%iff(erlang:function_exported(Callback,delete,1),[""%>
+<%iff(erlang:function_exported(Data,delete,1),[""%>
 <%RQ_(delete_resource,[""%>
     {{error,not_supported},ReqData,new}
 <%""],[""%>
-    case <%asci(Callback)%>:delete(State) of
+    case <%asci(Data)%>:delete(State) of
       deleted ->
         {true,ReqData,deleted};
       deleting ->
@@ -133,7 +132,7 @@ service_available(ReqData,State) -> {<%asci(Callback)%>:status(available),ReqDat
 <%""])%>
 <%""])%>
 
-<%iff(erlang:function_exported(Callback,delete,1),[""%>
+<%iff(erlang:function_exported(Data,delete,1),[""%>
 <%RQ(delete_completed,[""%>
     {error,not_supported}
 <%""],[""%>
@@ -146,32 +145,32 @@ service_available(ReqData,State) -> {<%asci(Callback)%>:status(available),ReqDat
 <%""])%>
 
 <%[[""%>
-<%iff(erlang:function_exported(Callback,list_to_atom("to_"++atom_to_list(Tag)),1),[""%>
+<%iff(erlang:function_exported(Data,list_to_atom("to_"++atom_to_list(Tag)),1),[""%>
 <%RQ(list_to_atom("to_"++atom_to_list(Tag)),[""%>
     {error,not_supported}
 <%""],[""%>
-  <%asci(Callback)%>:to_<%asci(Tag)%>(State)
+  <%asci(Data)%>:to_<%asci(Tag)%>(State)
 <%""])%>
 <%""])%>
-<%iff(erlang:function_exported(Callback,list_to_atom("from_"++atom_to_list(Tag)),1) 
-                  or erlang:function_exported(Callback,list_to_atom("from_"++atom_to_list(Tag)),2),[""%>
+<%iff(erlang:function_exported(Data,list_to_atom("from_"++atom_to_list(Tag)),1) 
+                  or erlang:function_exported(Data,list_to_atom("from_"++atom_to_list(Tag)),2),[""%>
 <%RQ_(list_to_atom("from_"++atom_to_list(Tag)),[""%>
-  <%iff(erlang:function_exported(Callback,list_to_atom("from_"++atom_to_list(Tag)),1),[""%>
-    State1 = <%asci(Callback)%>:from_<%asci(Tag)%>(wrq:req_body(ReqData)),
+  <%iff(erlang:function_exported(Data,list_to_atom("from_"++atom_to_list(Tag)),1),[""%>
+    State1 = <%asci(Data)%>:from_<%asci(Tag)%>(wrq:req_body(ReqData)),
     {ok,ReqData,State1}
   <%""],[""%>
     {{error,not_supported},ReqData,new}
   <%""])%>
 <%""],[""%>
-  <%iff(erlang:function_exported(Callback,list_to_atom("from_"++atom_to_list(Tag)),2),[""%>
-    State1 = <%asci(Callback)%>:from_<%asci(Tag)%>(wrq:req_body(ReqData,State)),
+  <%iff(erlang:function_exported(Data,list_to_atom("from_"++atom_to_list(Tag)),2),[""%>
+    State1 = <%asci(Data)%>:from_<%asci(Tag)%>(wrq:req_body(ReqData,State)),
     {ok,ReqData,State1}
   <%""],[""%>
     {{error,not_supported},ReqData,State}
   <%""])%>
 <%""])%>
 <%""])%>
-<%""] || {_Mime,Tag} <- formats(Callback) ]%>
+<%""] || {_Mime,Tag} <- formats(Data) ]%>
 
 <%RQ(post_is_create,[""%>
     true
@@ -195,18 +194,18 @@ service_available(ReqData,State) -> {<%asci(Callback)%>:status(available),ReqDat
 <%""])%>
 
 <%RQ(allowed_methods,[""%>
-  <%iff(erlang:function_exported(Callback,new,0)
-                   and erlang:function_exported(Callback,put,1),[""%>
+  <%iff(erlang:function_exported(Data,new,0)
+                   and erlang:function_exported(Data,put,1),[""%>
     ['POST','PUT']
   <%""],[""%>
     []
   <%""])%>
 <%""],[""%>
     ['HEAD','GET']
-  <%iff(erlang:function_exported(Callback,put,1),[""%>
+  <%iff(erlang:function_exported(Data,put,1),[""%>
     ++['POST','PUT']
   <%""])%>
-  <%iff(erlang:function_exported(Callback,delete,1),[""%>
+  <%iff(erlang:function_exported(Data,delete,1),[""%>
     ++['DELETE']
   <%""])%>
 <%""])%>
@@ -215,7 +214,7 @@ service_available(ReqData,State) -> {<%asci(Callback)%>:status(available),ReqDat
 <%""] end%>
 
 <%!
-%><%@ formats(Callback) %><%
+%><%@ formats(Data) %><%
 [ {"text/xml",xml}
 , {"application/json",json}
   , {"application/pdf",pdf}
@@ -223,7 +222,7 @@ service_available(ReqData,State) -> {<%asci(Callback)%>:status(available),ReqDat
   , {"application/x-erlang-binary",erlang_binary}
   , {"application/x-erlang",erlang_string}
   , {"application/x-protobuf",protocol_buffers}] ++
-  case erlang:function_exported(Callback,formats,0) of true -> Callback:formats(); _ -> [] end
+  case erlang:function_exported(Data,formats,0) of true -> Data:formats(); _ -> [] end
 %><%!
 %><%@ iff(Cond,Then,Else) %><% case Cond of true -> Then; _ -> Else end %><%!
 %><%@ iff(Cond,Then) %><%iff(Cond,Then,"") %><%!

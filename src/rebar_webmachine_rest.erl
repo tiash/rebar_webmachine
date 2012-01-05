@@ -5,8 +5,6 @@
 
 -include("rebar.hrl").
 
--define(CODEGEN,(list_to_atom(?MODULE_STRING++".erltl"))).
-
 compile(Config, _AppFile) ->
     % io:format("~s:~b ~~ ~s:compile(~p,~p).~n",[?FILE,?LINE,?MODULE,Config,_AppFile]),
     RestOpts = rest_opts(Config),
@@ -39,7 +37,7 @@ compile_tl(Source, Target, Config) ->
 
 do_compile(Module, Target, _Config) when is_atom(Module) ->
   % io:format("~p: ~p -> ~s~n",[?LINE,Module,Target]),
-  Code = (catch iolist_to_binary((?CODEGEN:code(Module)))),
+  Code = (catch iolist_to_binary((rebar_webmachine_rest.erltl:render(Module)))),
   % io:format("~p: ~p -> ~s~n%%%%%%%%%%%%%%%%%%~s~n%%%%%%%%%%%%%%%%%%~n",[?LINE,Module,Target,Code]),
   case catch file:read_file(Target) of
     {ok,Code} ->
