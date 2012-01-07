@@ -8,5 +8,6 @@
                   stdlib,
                   erltl
                  ]},
+  {modules,[rebar_webmachine_dispatch,rebar_webmachine_rest,rebar_webmachine_rest_erltl]},
   {env, []}
  ]}.
