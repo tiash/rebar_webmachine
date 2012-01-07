@@ -19,7 +19,7 @@ compile(Config, _AppFile) ->
                             fun compile_tl/3, [{check_last_mod, false}])).
 
 rest_opts(Config) ->
-    rebar_config:get(Config, webmachine.rest, []).
+    rebar_config:get(Config, webmachine_rest, []).
 
 option(Opt, RestOpts) ->
     proplists:get_value(Opt, RestOpts, default(Opt)).
@@ -39,7 +39,7 @@ compile_tl(Source, Target, Config) ->
 
 do_compile(Module, Target, _Config) when is_atom(Module) ->
   ?DEBUG("~p: ~p -> ~s~n",[?LINE,Module,Target]),
-  Code = (catch iolist_to_binary((rebar_webmachine_rest.erltl:render(Module)))),
+  Code = (catch iolist_to_binary((rebar_webmachine_rest_erltl:render(Module)))),
   ?DEBUG("~p: ~p -> ~s~n%%%%%%%%%%%%%%%%%%~s~n%%%%%%%%%%%%%%%%%%~n",[?LINE,Module,Target,Code]),
   case catch file:read_file(Target) of
     {ok,Code} ->
