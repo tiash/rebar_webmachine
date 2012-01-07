@@ -2,4 +2,4 @@
 .*.swp
 ebin/*
 deps/*
-priv/www/mathjax
+
