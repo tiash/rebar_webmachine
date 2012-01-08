@@ -53,7 +53,7 @@ dispatcher(Root) ->
 dispatch_file(DD) -> ["% vim: ft=erlang\n" | [ io_lib:format("~p.~n",[D]) || D<-DD ]].
 
   
-options(Config) -> rebar_config:get(Config, webmachine.dispatch, []).
+options(Config) -> rebar_config:get(Config, webmachine_dispatch, []).
 option(Opt,Config) ->
     proplists:get_value(Opt, options(Config), default(Opt)).
 
