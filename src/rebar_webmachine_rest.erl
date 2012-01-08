@@ -44,7 +44,7 @@ do_compile(Module, Target, _Config) when is_atom(Module) ->
   case catch file:read_file(Target) of
     {ok,Code} ->
       ?DEBUG("~p: ~p -> ~s~n",[?LINE,Module,Target]),
-      ok;
+      skipped;
     _ ->
       filelib:ensure_dir(Target),
       Res = (catch file:write_file(Target,Code)),
