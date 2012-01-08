@@ -8,8 +8,9 @@ compile(Config,_AppFile) ->
   Last = lists:flatten([ case file:consult(T) of {ok,D} -> D; _ -> [] end || T <- option(last,Config) ]),
   Dispatch = lists:flatten([ dispatcher(D) || D <- option(src,Config) ]),
   Dispatches = First ++ Dispatch ++ Last,
+  ?DEBUG("Dispatches = ~p~n",[Dispatches]),
   DispatchFile = option(file,Config),
-  ?RES(case Dispatches=/=[] orelse filelib:is_regular(DispatchFile) of
+  ?RES(case Dispatches=/=[] orelse not (filelib:is_regular(DispatchFile)) of
     true ->
       filelib:ensure_dir(DispatchFile),
       File = option(file,Config),
@@ -17,7 +18,7 @@ compile(Config,_AppFile) ->
       case file:read_file(File) of
         {ok,DispatchText} -> ok;
         _ ->
-          ?CONSOLE("generated new dispatch.conf~n",[]),
+          ?CONSOLE("generated new ~p.~n",[File]),
           file:write_file(File,DispatchText)
       end;
     _ -> ok
@@ -28,10 +29,10 @@ dispatcher(Root) ->
     case re:run(File,".*\\.beam$") of
     nomatch -> Disp;
     _ ->
-      % ?CONSOLE("checking ~s~n",[File]),
+      ?DEBUG("checking ~s~n",[File]),
       case beam_lib:chunks(File,[attributes]) of
         {ok,{Module,[{attributes,Attributes}]}} ->
-          % ?CONSOLE("  module: ~p~n",[Module]),
+          ?DEBUG("  module: ~p~n",[Module]),
           case proplists:get_bool(webmachine_resource,proplists:get_value(behaviour,Attributes,[])) of
             true ->
               Pattern = [ 
@@ -40,12 +41,12 @@ dispatcher(Root) ->
                   [$_,PP] -> list_to_atom(PP);
                   P -> P
                 end || P <- string:tokens(atom_to_list(Module),".")],
-              % ?CONSOLE("  pattern: ~p~n",[Pattern]),
+              ?DEBUG("  pattern: ~p~n",[Pattern]),
               Disp ++ [{Pattern,Module,[]}];
             _ -> Disp
           end;
         _Error -> 
-          % ?CONSOLE("err: ~p~n",[_Error]),
+          ?DEBUG("err: ~p~n",[_Error]),
           Disp
       end
     end end,[]).
