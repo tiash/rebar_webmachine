@@ -3,26 +3,24 @@
 -include("rebar.hrl").
 -export([compile/2]). % Rebar dosen't like this abuse of module instances...
 
-compile(Config,_AppFile) ->
+compile(Config,_AppFile) -> ?RES(begin
+  ?DEBUG("~p:compile(...).",[?MODULE]),
   First = lists:flatten([ case file:consult(T) of {ok,D} -> D; _ -> [] end || T <- option(first,Config) ]),
   Last = lists:flatten([ case file:consult(T) of {ok,D} -> D; _ -> [] end || T <- option(last,Config) ]),
   Dispatch = lists:flatten([ dispatcher(D) || D <- option(src,Config) ]),
   Dispatches = First ++ Dispatch ++ Last,
   ?DEBUG("Dispatches = ~p~n",[Dispatches]),
   DispatchFile = option(file,Config),
-  ?RES(case Dispatches=/=[] orelse not (filelib:is_regular(DispatchFile)) of
-    true ->
-      filelib:ensure_dir(DispatchFile),
-      File = option(file,Config),
-      DispatchText = iolist_to_binary(dispatch_file(Dispatches)),
-      case file:read_file(File) of
-        {ok,DispatchText} -> ok;
-        _ ->
-          ?CONSOLE("generated new ~p.~n",[File]),
-          file:write_file(File,DispatchText)
-      end;
-    _ -> ok
-  end).
+  filelib:ensure_dir(DispatchFile),
+  File = option(file,Config),
+  DispatchText = iolist_to_binary(dispatch_file(Dispatches)),
+  case file:read_file(File) of
+    {ok,DispatchText} -> ok;
+    _ ->
+      ?CONSOLE("generated new ~p.~n",[File]),
+      file:write_file(File,DispatchText)
+  end
+end).
 
 dispatcher(Root) ->
   filelib:fold_files(Root,".*",true,fun(File,Disp) ->
